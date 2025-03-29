@@ -27,22 +27,18 @@ struct Account{
 std::vector<Account> accountsByID;
 
 //hasmap to store accounts by username for username search
-std::unordered_map<std::string, Account*> accountsByUsername;
+std::unordered_map<std::string, Account> accountsByUsername;
 
 Account* SearchAccountByUsername(const std::string& username){
-
     auto it = accountsByUsername.find(username);
-    if (it != accountsByUsername.end()){
-        return it->second;
+    if (it != accountsByUsername.end()) {
+        return &(it->second);
     }
-
     return nullptr;
-    
 }
-
 void PrintAccountInformation(Account* account){
 
-    std::cout << account -> id;
+    std::cout << account -> id << "\n";
 
 }
 
@@ -67,17 +63,16 @@ void LoadFileIntoMemory(){
         int id  = std::stoi(SPid);
         int balance = std::stoi(SPbalance);
 
-        Account acc = {id, SPusername, SPpassword, balance};
+        Account acc = Account{id, SPusername, SPpassword, balance};
 
 
         accountsByID.push_back(acc);
+        accountsByUsername[acc.username] = acc;
 
     }
     file.close();
 
-    for(auto& acc : accountsByID){
-        accountsByUsername[acc.username] = &acc;
-    }
+
    /*
     
     for (const Account& acc : accountsByID) {
@@ -111,7 +106,7 @@ void AccountHistory(){
 
 }
 
-bool CheckIfAccountExists(const std::string& username){
+bool CheckIfAccountExists(const std::string username){
 
     Account* CheckAccount = SearchAccountByUsername(username);
 
@@ -150,8 +145,39 @@ void CreateAccount(int ID, const std::string& username, const std::string& passw
 
 };
 
+// Deletes the account if found
+void DeleteAccount(const std::string& username, const int& ID = 0){
 
-void DeleteAccount(){
+    bool doesAccountExist = CheckIfAccountExists(username);
+
+    if(doesAccountExist){
+        std::cout << "Here \n";
+        LoadFileIntoMemory();
+        
+        accountsByUsername.erase(username);
+
+        std::ofstream file("accounts.txt");
+
+        std::cout << "File nas been opened \n";
+
+        for (const auto& pair : accountsByUsername) {
+            const std::string& username = pair.first;
+            const Account acc = pair.second;
+        
+            std::cout << "Username: " << username << "\n";
+            std::cout << "ID: " << acc.id << "\n";
+            std::cout << "Password: " << acc.password << "\n";
+            std::cout << "Balance: $" << acc.balance << "\n";
+            std::cout << "--------------------------\n";
+        }
+
+        for(const auto& x: accountsByUsername){
+            file << x.first << '|' << x.second.id << '|' << x.second.password << '|' << x.second.balance << "\n";
+        }
+         file.close();
+
+         std::cout << "Account has been deleted! \n"; 
+    }
 
 
 };
@@ -218,13 +244,15 @@ int main(){
 
     
 
-    std::string usernameSearched = "Nikola";
+    std::string usernameSearched = "Peter";
 
-    Account* acc;
+  //  Account* acc;
 
-    acc = SearchAccountByUsername(usernameSearched);
+  //  acc = SearchAccountByUsername(usernameSearched);
 
-    PrintAccountInformation(acc);
+  //  PrintAccountInformation(acc);
+
+    DeleteAccount("Peter");
 
 //    std::cout << "Last unique ID file is cleared " <<UniqueID::GetLastID() << "\n";
 
